@@ -10,6 +10,7 @@ using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
 using Blish_HUD.Overlay.UI.Views;
 using Blish_HUD.Settings;
+using Gw2Sharp.Mumble.Models;
 using Gw2Sharp.WebApi.V2.Models;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -45,46 +46,11 @@ namespace ExampleBlishhudModule
         // between updates to both Blish HUD and your module.
         protected override void DefineSettings(SettingCollection settings)
         {
-            settings.DefineSetting(
-                "ExampleSetting",
-                "This is the default value of the setting",
-                () => "Display name of setting",
-                () => "Tooltip text of setting");
 
-            // Assigning the return value is the preferred way of keeping track of your settings.
-            _boolExampleSetting = settings.DefineSetting(
-                "bool example",
-                true,
-                () => "This is a bool setting (checkbox)",
-                () => "Settings can be many different types");
-
-            _stringExampleSetting = settings.DefineSetting(
-                "string example",
-                "myText",
-                () => "This is an string setting (textbox)",
-                () => "Settings can be many different types");
-
-            _valueRangeExampleSetting = settings.DefineSetting(
-                "int example",
-                20,
-                () => "This is an int setting (slider)",
-                () => "Settings can be many different types");
-
-            _valueRangeExampleSetting.SetRange(0, 255); // for min and max range of the setting
-
-            _enumExampleSetting = settings.DefineSetting("enum example",
-                Language.English,
-                () => "This is an enum setting (drop down menu)",
+            _enumExampleSetting = settings.DefineSetting("UI size",
+                UiSize.Small,
+                () => "UI Size",
                 () => "...");
-
-            // you can get or set the setting value somewhere else in your module with the .Value property like this:
-            _boolExampleSetting.Value = false;
-
-            // internal settings that should not be displayed to the user in the settings window have to be stored in subcollections
-            // e.g. saving x,y position of a window
-            _internalExampleSettingSubCollection = settings.AddSubCollection("internal settings (not visible in UI)");
-            _hiddenIntExampleSetting = _internalExampleSettingSubCollection.DefineSetting("example window x position", 50);
-            _hiddenIntExampleSetting2 = _internalExampleSettingSubCollection.DefineSetting("example window y position", 50);
         }
 
         // Allows your module to perform any initialization it needs before starting to run.
@@ -92,40 +58,38 @@ namespace ExampleBlishhudModule
         // and render loop, so be sure to not do anything here that takes too long.
         protected override void Initialize()
         {
-            Gw2ApiManager.SubtokenUpdated += OnApiSubTokenUpdated;
 
-            // show a simple window with 2 labels
-            _mySimpleWindowContainer = new MyContainer()
+            _forgeDelimiterContainer = new MyContainer()
             {
-                BackgroundColor  = Color.Black,
+                BackgroundColor  = Color.Transparent,
                 HeightSizingMode = SizingMode.AutoSize,
                 WidthSizingMode  = SizingMode.AutoSize,
-                Location         = new Point(200, 200),
+                Location         = new Point(1000, 1228),
                 Parent           = GameService.Graphics.SpriteScreen
             };
 
-            _myFirstLabel = new Label() // this label is used as heading
+            _enterForgeLabel = new Label()
             {
-                Text           = "My Characters:",
-                TextColor      = Color.Red,
-                Font           = GameService.Content.DefaultFont32,
+                Text           = "|",
+                TextColor      = Color.Black,
+                Font           = GameService.Content.DefaultFont16,
                 ShowShadow     = true,
                 AutoSizeHeight = true,
-                AutoSizeWidth  = true,
-                Location       = new Point(2, 0),
-                Parent         = _mySimpleWindowContainer
+                AutoSizeWidth  = false,
+                Location       = new Point(0, 0),
+                Parent         = _forgeDelimiterContainer
             };
 
-            _mySecondLabel = new Label() // this label will be used to display the character names requested from the API
+            _exitForgeLabel = new Label()
             {
-                Text           = "getting data from api...", 
-                TextColor      = Color.DarkGray,
-                Font           = GameService.Content.DefaultFont32,
+                Text           = "|", 
+                TextColor      = Color.Black,
+                Font           = GameService.Content.DefaultFont16,
                 ShowShadow     = true,
                 AutoSizeHeight = true,
-                AutoSizeWidth  = true,
-                Location       = new Point(2, 50),
-                Parent         = _mySimpleWindowContainer
+                AutoSizeWidth  = false,
+                Location       = new Point(100, 0),
+                Parent         = _forgeDelimiterContainer
             };
         }
 
@@ -138,65 +102,14 @@ namespace ExampleBlishhudModule
         // when the user adds a new API key.
         private async void OnApiSubTokenUpdated(object sender, ValueEventArgs<IEnumerable<TokenPermission>> e)
         {
-            await GetCharacterNamesFromApiAndShowThemInLabel();
+            return;
         }
         
         // Load content and more here. This call is asynchronous, so it is a good time to run
         // any long running steps for your module including loading resources from file or ref.
         protected override async Task LoadAsync()
         {
-            // usually the api subtoken is not available when the module is loaded. But in case it already is,
-            // we try to receive the character names from the api here.
-            await GetCharacterNamesFromApiAndShowThemInLabel();
-
-            try
-            {
-                // Use the Gw2ApiManager to make requests to the API. Some Api requests, like this one, do not need an api key.
-                // Because of that it is not necessary to check for api key permissions in this case or for the api subtoken to be available.
-                var dungeonRequest = await Gw2ApiManager.Gw2ApiClient.V2.Dungeons.AllAsync();
-                _dungeons.Clear();
-                _dungeons.AddRange(dungeonRequest.ToList());
-            }
-            catch (Exception e)
-            {
-                Logger.Info($"Failed to get dungeons from api.");
-            }
-
-            // If you really need to, you can recall your settings values with the SettingsManager
-            // It is better if you just hold onto the returned "TypeEntry" instance when doing your initial DefineSetting, though
-            SettingEntry<string> setting1 = SettingsManager.ModuleSettings["ExampleSetting"] as SettingEntry<string>;
-
-            // Get your manifest registered directories with the DirectoriesManager
-            foreach (string directoryName in this.DirectoriesManager.RegisteredDirectories)
-            {
-                string fullDirectoryPath = DirectoriesManager.GetFullDirectoryPath(directoryName);
-                var allFiles = Directory.EnumerateFiles(fullDirectoryPath, "*", SearchOption.AllDirectories).ToList();
-
-                // example of how to log something in the blishhud.XXX-XXX.log file in %userprofile%\Documents\Guild Wars 2\addons\blishhud\logs
-                Logger.Info($"'{directoryName}' can be found at '{fullDirectoryPath}' and has {allFiles.Count} total files within it.");
-            }
-
-            // Load content from the ref directory in the module.bhm automatically with the ContentsManager
-            _mugTexture       = ContentsManager.GetTexture("603447.png");
-            _windowBackgroundTexture = ContentsManager.GetTexture("155985.png");
-
-            // show a window with gw2 window style.
-            _exampleWindow = new StandardWindow(
-                _windowBackgroundTexture,
-                new Rectangle(40, 26, 913, 691),
-                new Rectangle(70, 71, 839, 605))
-            {
-                Parent        = GameService.Graphics.SpriteScreen,
-                Title         = "Example Window Title",
-                Emblem        = _mugTexture,
-                Subtitle      = "Example Subtitle",
-                Location      = new Point(300, 300),
-                SavesPosition = true,
-                Id            = $"{nameof(ExampleModule)}_My_Unique_ID_123"
-            };
-
-            // show blish hud overlay settings content inside the window
-            _exampleWindow.Show(new OverlaySettingsView());
+            return;
         }
 
         // Allows you to perform an action once your module has finished loading (once
@@ -204,36 +117,6 @@ namespace ExampleBlishhudModule
         // end for the <see cref="ExampleModule.ModuleLoaded"/> event to fire.
         protected override void OnModuleLoaded(EventArgs e)
         {
-            // Add a mug corner icon in the top left next to the other icons in guild wars 2 (e.g. inventory icon, Mail icon)
-            _exampleCornerIcon = new CornerIcon()
-            {
-                Icon             = _mugTexture,
-                BasicTooltipText = $"My Corner Icon Tooltip for {Name}",
-                Parent           = GameService.Graphics.SpriteScreen
-            };
-
-            // Show a notification in the middle of the screen when the icon is clicked
-            _exampleCornerIcon.Click += delegate
-            {
-                ScreenNotification.ShowNotification("Hello from Blish HUD!");
-            };
-
-            // Add a right click menu to the corner icon which lists all dungeons with their dungeons paths as subcategories (pulled from the API)
-            _dungeonContextMenuStrip = new ContextMenuStrip();
-
-            foreach (var dungeon in _dungeons)
-            {
-                var dungeonPathMenu = new ContextMenuStrip();
-
-                foreach (var path in dungeon.Paths)
-                    dungeonPathMenu.AddMenuItem($"{path.Id} ({path.Type})");
-
-                var dungeonMenuItem = _dungeonContextMenuStrip.AddMenuItem(dungeon.Id);
-                dungeonMenuItem.Submenu = dungeonPathMenu;
-            }
-
-            _exampleCornerIcon.Menu = _dungeonContextMenuStrip;
-
             // Base handler must be called
             base.OnModuleLoaded(e);
         }
@@ -245,13 +128,7 @@ namespace ExampleBlishhudModule
         // slowing down the overlay.
         protected override void Update(GameTime gameTime)
         {
-            _runningTime += gameTime.ElapsedGameTime.TotalMilliseconds;
-
-            if (_runningTime > 60000)
-            {
-                _runningTime -= 60000;
-                ScreenNotification.ShowNotification("The examples module shows this message every 60 seconds!", ScreenNotification.NotificationType.Warning);
-            }
+           
         }
 
         // For a good module experience, your module should clean up ANY and ALL entities
@@ -259,14 +136,7 @@ namespace ExampleBlishhudModule
         // Be sure to remove any tabs added to the Director window, CornerIcons, etc.
         protected override void Unload()
         {
-            Gw2ApiManager.SubtokenUpdated -= OnApiSubTokenUpdated; 
-
-            _exampleCornerIcon?.Dispose();
-            _dungeonContextMenuStrip?.Dispose();
-            _mySimpleWindowContainer?.Dispose(); // this will dispose the child labels we added as well
-            _exampleWindow?.Dispose();
-            _windowBackgroundTexture?.Dispose();
-            _mugTexture?.Dispose();
+            _forgeDelimiterContainer?.Dispose(); // this will dispose the child labels we added as well
 
             // All static members must be manually unset
             // Static members are not automatically cleared and will keep a reference to your,
@@ -285,7 +155,7 @@ namespace ExampleBlishhudModule
             // and not only rely on Gw2ApiManager.SubtokenUpdated 
             if (Gw2ApiManager.HasPermissions(Gw2ApiManager.Permissions) == false)
             {
-                _mySecondLabel.Text = "api permissions are missing or api sub token not available yet";
+                _exitForgeLabel.Text = "api permissions are missing or api sub token not available yet";
                 return;
             }
 
@@ -300,7 +170,7 @@ namespace ExampleBlishhudModule
                 // extract character names from the api response and show them inside a label
                 var characterNames = charactersResponse.Select(c => c.Name);
                 var characterNamesText = string.Join("\n", characterNames);
-                _mySecondLabel.Text = characterNamesText;
+                _exitForgeLabel.Text = characterNamesText;
             }
             catch (Exception e)
             {
@@ -311,22 +181,13 @@ namespace ExampleBlishhudModule
         }
 
         internal static ExampleModule ExampleModuleInstance;
-        private SettingEntry<bool> _boolExampleSetting;
-        private SettingEntry<int> _valueRangeExampleSetting;
-        private SettingEntry<string> _stringExampleSetting;
-        private SettingEntry<Language> _enumExampleSetting;
-        private SettingCollection _internalExampleSettingSubCollection;
+        private SettingEntry<UiSize> _enumExampleSetting;
         private SettingEntry<int> _hiddenIntExampleSetting;
         private SettingEntry<int> _hiddenIntExampleSetting2;
-        private Texture2D _windowBackgroundTexture;
-        private Texture2D _mugTexture;
-        private List<Dungeon> _dungeons = new List<Dungeon>();
-        private CornerIcon _exampleCornerIcon;
-        private ContextMenuStrip _dungeonContextMenuStrip;
-        private double _runningTime;
-        private Label _myFirstLabel;
-        private Label _mySecondLabel;
-        private MyContainer _mySimpleWindowContainer;
+        private Label _enterForgeLabel;
+        private Label _exitForgeLabel;
+        private MyContainer _forgeDelimiterContainer;
         private StandardWindow _exampleWindow;
     }
+   
 }

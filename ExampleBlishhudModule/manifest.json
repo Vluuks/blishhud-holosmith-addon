@@ -1,57 +1,27 @@
 {
-  "name": "Example Module",
+  "name": "ECSUhelper",
   "version": "0.3.0",
-  "namespace": "renske.blish.ecsuhelp",
+  "namespace": "bh.example.examplemodule",
   "package": "ExampleBlishhudModule.dll",
   "manifest_version": 1,
-  "description": "Acts as an example on how to create a Blish HUD module.",
+
+  "description": "Adds an extra visual cue for good moments to enter and exit Photon Forge.",
   "dependencies": {
     "bh.blishhud": ">=0.11.7"
   },
   "url": "https://github.com/blish-hud/Blish-HUD",
-  "author": "Renske",
-  "enabled_without_gw2": false,
-
-  "api_permissions": {
-    "account": {
-      "optional": true,
-      "details": "This will be shown as tooltip in the module settings for the api permissions"
+  "contributors": [
+    {
+      "name": "Renske",
+      "username": "Renske.6178"
     },
-    "inventories": {
-      "optional": true,
-      "details": "Needed to review the item in your inventory."
-    },
-    "characters": {
-      "optional": true,
-      "details": "Needed to review the item in your inventory."
-    },
-    "tradingpost": {
-      "optional": true,
-      "details": "Needed to review the item in your inventory."
-    },
-    "wallet": {
-      "optional": true,
-      "details": "Needed to review the item in your inventory."
-    },
-    "unlocks": {
-      "optional": true,
-      "details": "Needed to review the item in your inventory."
-    },
-    "pvp": {
-      "optional": true,
-      "details": "Needed to review the item in your inventory."
-    },
-    "builds": {
-      "optional": true,
-      "details": "Needed to review the item in your inventory."
-    },
-    "progression": {
-      "optional": true,
-      "details": "Needed to review the item in your inventory."
-    },
-    "guilds": {
-      "optional": true,
-      "details": "Needed to review the item in your inventory."
+    {
+      "name": "Debugger Dennis",
+      "username": "Val.8265"
     }
-  }
+  ],
+
+  "directories": [ "markers" ],
+  "enabled_without_gw2": false,
+  "api_permissions": {}
 }
