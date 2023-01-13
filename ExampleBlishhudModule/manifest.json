@@ -5,7 +5,7 @@
   "package": "ExampleBlishhudModule.dll",
   "manifest_version": 1,
 
-  "description": "Adds an extra visual cue for good moments to enter and exit Photon Forge.",
+  "description": "Adds an extra visual cue for good moments to enter and exit Photon Forge when playing ECSU Holosmith.",
   "dependencies": {
     "bh.blishhud": ">=0.11.7"
   },
@@ -16,8 +16,12 @@
       "username": "Renske.6178"
     },
     {
-      "name": "Debugger Dennis",
+      "name": "Dennis",
       "username": "Val.8265"
+    },
+    {
+      "name": "Jaapm",
+      "username": "DoesNotPlayGW2.1337"
     }
   ],
 

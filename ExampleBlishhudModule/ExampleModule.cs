@@ -76,7 +76,7 @@ namespace ExampleBlishhudModule
                 ShowShadow     = true,
                 AutoSizeHeight = true,
                 AutoSizeWidth  = false,
-                Location       = new Point(0, 0),
+                Location       = new Point(3, 0),
                 Parent         = _forgeDelimiterContainer
             };
 
