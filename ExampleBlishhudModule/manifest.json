@@ -1,27 +1,15 @@
 {
   "name": "Example Module",
   "version": "0.3.0",
-  "namespace": "bh.example.examplemodule",
+  "namespace": "renske.blish.ecsuhelp",
   "package": "ExampleBlishhudModule.dll",
   "manifest_version": 1,
-
   "description": "Acts as an example on how to create a Blish HUD module.",
   "dependencies": {
     "bh.blishhud": ">=0.11.7"
   },
   "url": "https://github.com/blish-hud/Blish-HUD",
-  "contributors": [
-    {
-      "name": "Me",
-      "username": "Gw2AccountName.1234"
-    },
-    {
-      "name": "Myself",
-      "username": "Gw2AccountName2.1234"
-    }
-  ],
-
-  "directories": [ "markers" ],
+  "author": "Renske",
   "enabled_without_gw2": false,
 
   "api_permissions": {

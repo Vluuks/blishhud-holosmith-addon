@@ -2,8 +2,8 @@
   "profiles": {
     "gw2": {
       "commandName": "Executable",
-      "executablePath": "C:\\gw2\\Blish.HUD\\Blish HUD.exe",
-      "commandLineArgs": "--debug --module \"$(ProjectDir)\\$(BaseOutputPath)\\$(Configuration)/$(TargetFramework)\\$(TargetName).bhm\" --settings \"..\\Settings_$(TargetName)\""
+      "executablePath": "C:\\Users\\Renske\\Desktop\\Blish.HUD.1.0.0\\Blish HUD.exe",
+      "commandLineArgs": "--debug --module \"C:\\Users\\Renske\\Example-Blish-HUD-Module\\ExampleBlishhudModule\\bin\\Debug\\net48\\ExampleBlishhudModule.bhm\""
     },
     "powershell": {
       "commandName": "Executable",
