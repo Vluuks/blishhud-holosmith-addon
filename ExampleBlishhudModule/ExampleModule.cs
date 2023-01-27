@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Drawing;
+using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -26,6 +27,12 @@ namespace ExampleBlishhudModule
     public class ExampleModule : Module
     {
         private static readonly Logger Logger = Logger.GetLogger<ExampleModule>();
+
+        private int HOLOBAR_TOPLEFT_Y_ORIGIN = 999;
+        private int HOLOBAR_TOPLEFT_X_ORIGIN = 671;
+
+        private int HOLOBAR_HEIGHT = 8;
+        private int HOLOBAR_WIDTH = 237;
 
         #region Service Managers
 
@@ -94,8 +101,9 @@ namespace ExampleBlishhudModule
                 Parent         = _forgeDelimiterContainer
             };
 
-            Logger.Debug("lekkerkleurtje " + GetColorAt(1000, 1228).ToString());
+            //Logger.Debug("lekkerkleurtje " + GetColorAt(1000, 1228).ToString());
             //GetColorAt(1000, 1228);
+            SomePitifulAttempt();
         }
 
         // Some API requests need an api key. e.g. accessing account data like inventory or bank content
@@ -192,6 +200,9 @@ namespace ExampleBlishhudModule
         private Label _enterForgeLabel;
         private Label _exitForgeLabel;
         private MyContainer _forgeDelimiterContainer;
+        private MyContainer _holoBarTestContainer;
+        private Label _holoBarTestLabel;
+
         private StandardWindow _exampleWindow;
 
         public static System.Drawing.Color GetColorAt(int x, int y)
@@ -201,6 +212,60 @@ namespace ExampleBlishhudModule
             using (Graphics g = Graphics.FromImage(bmp))
                 g.CopyFromScreen(bounds.Location, new System.Drawing.Point(0, 0), bounds.Size);
             return bmp.GetPixel(0, 0);
+        }
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetWindowRect(IntPtr hWnd, ref RECT lpRect);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool MoveWindow(IntPtr hWnd, int x, int y, int width, int height, bool repaint);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetClientRect(IntPtr hWnd, out RECT lpRect);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT
+        {
+            public RECT(int l, int t, int r, int b)
+            {
+                Left = l;
+                Top = t;
+                Right = r;
+                Bottom = b;
+            }
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
+        private void SomePitifulAttempt()
+        {
+            //RECT wndBounds = Characters.ModuleInstance.WindowRectangle;
+
+            bool windowed = GameService.GameIntegration.GfxSettings.ScreenMode == Blish_HUD.GameIntegration.GfxSettings.ScreenModeSetting.Windowed;
+            
+            Point p = windowed ? new Point(1000, 1228) : Point.Zero;
+            Logger.Debug("kleur windows " + p.ToString());
+
+
+
+            Bitmap bitmap = new Bitmap(HOLOBAR_WIDTH, HOLOBAR_HEIGHT);
+            var g = System.Drawing.Graphics.FromImage(bitmap);
+            //MemoryStream s = new MemoryStream();
+
+            g.CopyFromScreen(
+                new System.Drawing.Point(HOLOBAR_TOPLEFT_X_ORIGIN, HOLOBAR_TOPLEFT_Y_ORIGIN), 
+                System.Drawing.Point.Empty, new Size(HOLOBAR_WIDTH, HOLOBAR_HEIGHT)
+                );
+
+            System.Drawing.Color c = bitmap.GetPixel(0, 0);
+            //bitmap.Save(s, System.Drawing.Imaging.ImageFormat.Bmp);
+            bitmap.Save("holotest.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
+
+            Logger.Debug("kleurpixelding? " + c.ToString());
         }
 
     }
