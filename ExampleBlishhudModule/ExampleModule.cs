@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Drawing.Text;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Blish_HUD;
@@ -29,10 +30,12 @@ namespace ExampleBlishhudModule
         private static readonly Logger Logger = Logger.GetLogger<ExampleModule>();
 
         private int HOLOBAR_TOPLEFT_Y_ORIGIN = 999;
-        private int HOLOBAR_TOPLEFT_X_ORIGIN = 671;
+        private int HOLOBAR_TOPLEFT_X_ORIGIN = 672;
 
         private int HOLOBAR_HEIGHT = 8;
-        private int HOLOBAR_WIDTH = 237;
+        private int HOLOBAR_WIDTH = 236;
+
+        private System.Drawing.Color[] hoiikbendom = new System.Drawing.Color[236]; 
 
         #region Service Managers
 
@@ -243,29 +246,42 @@ namespace ExampleBlishhudModule
 
         private void SomePitifulAttempt()
         {
-            //RECT wndBounds = Characters.ModuleInstance.WindowRectangle;
-
-            bool windowed = GameService.GameIntegration.GfxSettings.ScreenMode == Blish_HUD.GameIntegration.GfxSettings.ScreenModeSetting.Windowed;
-            
-            Point p = windowed ? new Point(1000, 1228) : Point.Zero;
-            Logger.Debug("kleur windows " + p.ToString());
-
-
-
-            Bitmap bitmap = new Bitmap(HOLOBAR_WIDTH, HOLOBAR_HEIGHT);
+            Bitmap bitmap = new Bitmap(HOLOBAR_WIDTH, 1);
             var g = System.Drawing.Graphics.FromImage(bitmap);
-            //MemoryStream s = new MemoryStream();
 
             g.CopyFromScreen(
-                new System.Drawing.Point(HOLOBAR_TOPLEFT_X_ORIGIN, HOLOBAR_TOPLEFT_Y_ORIGIN), 
-                System.Drawing.Point.Empty, new Size(HOLOBAR_WIDTH, HOLOBAR_HEIGHT)
+                new System.Drawing.Point(HOLOBAR_TOPLEFT_X_ORIGIN, HOLOBAR_TOPLEFT_Y_ORIGIN + (HOLOBAR_HEIGHT - 4)), // we onlyy want the middle pixel for efficiency purposes
+                System.Drawing.Point.Empty, new Size(HOLOBAR_WIDTH, 1)
                 );
+            
+            // update the colors
+            for(int i = 0; i < HOLOBAR_WIDTH - 1; i++)
+            {
+                System.Drawing.Color c = bitmap.GetPixel(i, 0);
+                hoiikbendom[i] = c;
 
-            System.Drawing.Color c = bitmap.GetPixel(0, 0);
-            //bitmap.Save(s, System.Drawing.Imaging.ImageFormat.Bmp);
-            bitmap.Save("holotest.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
 
-            Logger.Debug("kleurpixelding? " + c.ToString());
+                Logger.Debug("kleurpixelding? " + hoiikbendom[i].ToString());
+                bool isHeatEdge = isEdge(bitmap.GetPixel(i, 0), bitmap.GetPixel(i + 1, 0));
+                if(isHeatEdge)
+                {
+                    Logger.Debug("heat edge detected at " + i.ToString());
+                    decimal heatPercent = (i * 100) / HOLOBAR_WIDTH;
+                    Logger.Debug("percentage estimated heat " + heatPercent.ToString());
+                }
+
+            }
+
+
+            bitmap.Save("holotest_tiny2.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
+
+        }
+
+        private bool isEdge(System.Drawing.Color left, System.Drawing.Color right)
+        {
+            return ((left.R == 255 && left.G == 255 && left.B == 255) // white
+                && (right.R != 255 && right.G != 255 && right.B != 255) // not white
+                );
         }
 
     }
