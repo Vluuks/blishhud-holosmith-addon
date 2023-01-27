@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Blish_HUD;
 using Blish_HUD.Controls;
@@ -91,6 +93,9 @@ namespace ExampleBlishhudModule
                 Location       = new Point(100, 0),
                 Parent         = _forgeDelimiterContainer
             };
+
+            Logger.Debug("lekkerkleurtje " + GetColorAt(1000, 1228).ToString());
+            //GetColorAt(1000, 1228);
         }
 
         // Some API requests need an api key. e.g. accessing account data like inventory or bank content
@@ -188,6 +193,16 @@ namespace ExampleBlishhudModule
         private Label _exitForgeLabel;
         private MyContainer _forgeDelimiterContainer;
         private StandardWindow _exampleWindow;
+
+        public static System.Drawing.Color GetColorAt(int x, int y)
+        {
+            Bitmap bmp = new Bitmap(1, 1);
+            System.Drawing.Rectangle bounds = new System.Drawing.Rectangle(x, y, 1, 1);
+            using (Graphics g = Graphics.FromImage(bmp))
+                g.CopyFromScreen(bounds.Location, new System.Drawing.Point(0, 0), bounds.Size);
+            return bmp.GetPixel(0, 0);
+        }
+
     }
    
 }
