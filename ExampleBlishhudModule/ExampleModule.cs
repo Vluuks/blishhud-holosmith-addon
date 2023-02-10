@@ -29,6 +29,8 @@ namespace ExampleBlishhudModule
     {
         private static readonly Logger Logger = Logger.GetLogger<ExampleModule>();
 
+        private double _tick = 0;
+
         private int HOLOBAR_TOPLEFT_Y_ORIGIN = 999;
         private int HOLOBAR_TOPLEFT_X_ORIGIN = 672;
 
@@ -70,6 +72,28 @@ namespace ExampleBlishhudModule
         // and render loop, so be sure to not do anything here that takes too long.
         protected override void Initialize()
         {
+
+            _forgeHeatLevelContainer = new MyContainer()
+            {
+                BackgroundColor = Color.TransparentBlack,
+                HeightSizingMode = SizingMode.AutoSize,
+                WidthSizingMode = SizingMode.AutoSize,
+                Location = new Point(1000, 200),
+                Parent = GameService.Graphics.SpriteScreen
+            };
+
+            _heatLevelLabel = new Label()
+            {
+                Text = "<heat>",
+                TextColor = Color.White,
+                Font = GameService.Content.DefaultFont32,
+                ShowShadow = true,
+                AutoSizeHeight = true,
+                AutoSizeWidth = true,
+                Location = new Point(0, 0),
+                Parent = _forgeHeatLevelContainer
+            };
+
 
             _forgeDelimiterContainer = new MyContainer()
             {
@@ -144,7 +168,12 @@ namespace ExampleBlishhudModule
         // slowing down the overlay.
         protected override void Update(GameTime gameTime)
         {
-           
+            base.Update(gameTime);
+            if(gameTime.TotalGameTime.TotalMilliseconds - _tick > 200)
+            {
+                _tick = gameTime.TotalGameTime.TotalMilliseconds;
+                SomePitifulAttempt();
+            }
         }
 
         // For a good module experience, your module should clean up ANY and ALL entities
@@ -202,7 +231,9 @@ namespace ExampleBlishhudModule
         private SettingEntry<int> _hiddenIntExampleSetting2;
         private Label _enterForgeLabel;
         private Label _exitForgeLabel;
+        private Label _heatLevelLabel;
         private MyContainer _forgeDelimiterContainer;
+        private MyContainer _forgeHeatLevelContainer;
         private MyContainer _holoBarTestContainer;
         private Label _holoBarTestLabel;
 
@@ -250,31 +281,47 @@ namespace ExampleBlishhudModule
             var g = System.Drawing.Graphics.FromImage(bitmap);
 
             g.CopyFromScreen(
-                new System.Drawing.Point(HOLOBAR_TOPLEFT_X_ORIGIN, HOLOBAR_TOPLEFT_Y_ORIGIN + (HOLOBAR_HEIGHT - 4)), // we onlyy want the middle pixel for efficiency purposes
-                System.Drawing.Point.Empty, new Size(HOLOBAR_WIDTH, 1)
-                );
-            
+            new System.Drawing.Point(HOLOBAR_TOPLEFT_X_ORIGIN, HOLOBAR_TOPLEFT_Y_ORIGIN + (HOLOBAR_HEIGHT - 4)), // we onlyy want the middle pixel for efficiency purposes
+            System.Drawing.Point.Empty, new Size(HOLOBAR_WIDTH, 1)
+            );
+
             // update the colors
-            for(int i = 0; i < HOLOBAR_WIDTH - 1; i++)
+            bool foundEdge = false;
+            for (int i = 0; i < HOLOBAR_WIDTH - 1; i++)
             {
                 System.Drawing.Color c = bitmap.GetPixel(i, 0);
-                hoiikbendom[i] = c;
 
-
-                Logger.Debug("kleurpixelding? " + hoiikbendom[i].ToString());
+                //Logger.Debug("kleurpixelding? " + c.ToString());
                 bool isHeatEdge = isEdge(bitmap.GetPixel(i, 0), bitmap.GetPixel(i + 1, 0));
-                if(isHeatEdge)
+                if (isHeatEdge)
                 {
-                    Logger.Debug("heat edge detected at " + i.ToString());
-                    decimal heatPercent = (i * 100) / HOLOBAR_WIDTH;
-                    Logger.Debug("percentage estimated heat " + heatPercent.ToString());
-                }
+                    //Logger.Debug("heat edge detected at " + i.ToString());
+                    decimal heatPercent = ((i * 150) / HOLOBAR_WIDTH) + 1;
+                    //Logger.Debug("percentage estimated heat " + heatPercent.ToString());
+                    foundEdge = true;
+      
+                    if(heatPercent >= 130)
+                    {
+                        _heatLevelLabel.TextColor = Color.Red;
+                    }
+                    else if(heatPercent <= 130 && heatPercent >= 100)
+                    {
+                        _heatLevelLabel.TextColor = Color.Orange;
+                    }
+                    else
+                    {
+                        _heatLevelLabel.TextColor = Color.White;
+                    }
 
+                    _heatLevelLabel.Text = heatPercent.ToString();
+                }
             }
 
-
-            bitmap.Save("holotest_tiny2.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
-
+            // no edge, set to 0
+            if(!foundEdge)
+            {
+                _heatLevelLabel.Text = "no heat or not holosmith";
+            }
         }
 
         private bool isEdge(System.Drawing.Color left, System.Drawing.Color right)
