@@ -25,9 +25,9 @@ using Rectangle = Microsoft.Xna.Framework.Rectangle;
 namespace ExampleBlishhudModule
 {
     [Export(typeof(Module))]
-    public class ExampleModule : Module
+    public class HolosmithHeatModule : Module
     {
-        private static readonly Logger Logger = Logger.GetLogger<ExampleModule>();
+        private static readonly Logger Logger = Logger.GetLogger<HolosmithHeatModule>();
 
         private double _tick = 0;
 
@@ -51,7 +51,7 @@ namespace ExampleBlishhudModule
         // Ideally you should keep the constructor as is.
         // Use <see cref="Initialize"/> to handle initializing the module.
         [ImportingConstructor]
-        public ExampleModule([Import("ModuleParameters")] ModuleParameters moduleParameters) : base(moduleParameters)
+        public HolosmithHeatModule([Import("ModuleParameters")] ModuleParameters moduleParameters) : base(moduleParameters)
         {
             ExampleModuleInstance = this;
         }
@@ -130,7 +130,7 @@ namespace ExampleBlishhudModule
 
             //Logger.Debug("lekkerkleurtje " + GetColorAt(1000, 1228).ToString());
             //GetColorAt(1000, 1228);
-            SomePitifulAttempt();
+            //SomePitifulAttempt();
         }
 
         // Some API requests need an api key. e.g. accessing account data like inventory or bank content
@@ -168,6 +168,7 @@ namespace ExampleBlishhudModule
         // slowing down the overlay.
         protected override void Update(GameTime gameTime)
         {
+            
             base.Update(gameTime);
             if(gameTime.TotalGameTime.TotalMilliseconds - _tick > 200)
             {
@@ -225,7 +226,7 @@ namespace ExampleBlishhudModule
             }
         }
 
-        internal static ExampleModule ExampleModuleInstance;
+        internal static HolosmithHeatModule ExampleModuleInstance;
         private SettingEntry<UiSize> _enumExampleSetting;
         private SettingEntry<int> _hiddenIntExampleSetting;
         private SettingEntry<int> _hiddenIntExampleSetting2;
