@@ -96,7 +96,7 @@ namespace ExampleBlishhudModule
 
             _heatLevelLabel2 = new Label()
             {
-                Text = "<debug infootjes>",
+                Text = "",
                 TextColor = Color.White,
                 Font = GameService.Content.DefaultFont32,
                 ShowShadow = true,
@@ -190,6 +190,7 @@ namespace ExampleBlishhudModule
         // Be sure to remove any tabs added to the Director window, CornerIcons, etc.
         protected override void Unload()
         {
+            _forgeHeatLevelContainer?.Dispose();
             _forgeDelimiterContainer?.Dispose(); // this will dispose the child labels we added as well
 
             // All static members must be manually unset
@@ -261,6 +262,7 @@ namespace ExampleBlishhudModule
             // update the colors
             bool foundEdge = false;
             int pixelPosition;
+
             for (pixelPosition = 0; pixelPosition < HOLOBAR_WIDTH - 1; pixelPosition++)
             {
                 System.Drawing.Color c = bitmap.GetPixel(pixelPosition, 0);
