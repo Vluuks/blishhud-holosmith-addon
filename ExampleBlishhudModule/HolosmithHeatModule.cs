@@ -75,7 +75,7 @@ namespace ExampleBlishhudModule
         {
             _forgeHeatLevelContainer = new MyContainer()
             {
-                BackgroundColor = Color.TransparentBlack,
+                BackgroundColor = Color.Transparent,
                 HeightSizingMode = SizingMode.AutoSize,
                 WidthSizingMode = SizingMode.AutoSize,
                 Location = new Point(1000, 200),
@@ -91,6 +91,18 @@ namespace ExampleBlishhudModule
                 AutoSizeHeight = true,
                 AutoSizeWidth = true,
                 Location = new Point(0, 0),
+                Parent = _forgeHeatLevelContainer
+            };
+
+            _heatLevelLabel2 = new Label()
+            {
+                Text = "<debug infootjes>",
+                TextColor = Color.White,
+                Font = GameService.Content.DefaultFont32,
+                ShowShadow = true,
+                AutoSizeHeight = true,
+                AutoSizeWidth = true,
+                Location = new Point(0, 30),
                 Parent = _forgeHeatLevelContainer
             };
 
@@ -229,6 +241,7 @@ namespace ExampleBlishhudModule
         private Label _enterForgeLabel;
         private Label _exitForgeLabel;
         private Label _heatLevelLabel;
+        private Label _heatLevelLabel2;
         private MyContainer _forgeDelimiterContainer;
         private MyContainer _forgeHeatLevelContainer;
         private MyContainer _holoBarTestContainer;
@@ -241,35 +254,34 @@ namespace ExampleBlishhudModule
             var g = System.Drawing.Graphics.FromImage(bitmap);
 
             g.CopyFromScreen(
-            new System.Drawing.Point(HOLOBAR_TOPLEFT_X_ORIGIN, HOLOBAR_TOPLEFT_Y_ORIGIN + (HOLOBAR_HEIGHT - 4)), // we onlyy want the middle pixel for efficiency purposes
-            System.Drawing.Point.Empty, new Size(HOLOBAR_WIDTH, 1)
+                new System.Drawing.Point(HOLOBAR_TOPLEFT_X_ORIGIN, HOLOBAR_TOPLEFT_Y_ORIGIN + (HOLOBAR_HEIGHT - 4)), // we onlyy want the middle pixel for efficiency purposes
+                System.Drawing.Point.Empty, new Size(HOLOBAR_WIDTH, 1)
             );
 
             // update the colors
             bool foundEdge = false;
-            for (int i = 0; i < HOLOBAR_WIDTH - 1; i++)
+            int pixelPosition;
+            for (pixelPosition = 0; pixelPosition < HOLOBAR_WIDTH - 1; pixelPosition++)
             {
-                System.Drawing.Color c = bitmap.GetPixel(i, 0);
+                System.Drawing.Color c = bitmap.GetPixel(pixelPosition, 0);
+                bool isHeatEdge = isEdge(bitmap.GetPixel(pixelPosition, 0), bitmap.GetPixel(pixelPosition + 1, 0));
 
-                bool isHeatEdge = isEdge(bitmap.GetPixel(i, 0), bitmap.GetPixel(i + 1, 0));
                 if (isHeatEdge)
                 {
-                    _currentHeatPixel = i;
                     foundEdge = true;
                     break;
                 }
             }
 
-            if(foundEdge)
+            // if we detected a true new value, not a stray 0 because of UI, we update the UI
+            if (foundEdge && (Math.Abs(_currentHeatPixel - pixelPosition) < 50))
             {
-                decimal heatPercent = ((_currentHeatPixel * 150) / HOLOBAR_WIDTH) + 1;
+                // _heatLevelLabel2.Text = "debug leven " + pixelPosition.ToString();
+                _currentHeatPixel = pixelPosition;
+                int heatPercent = (int) ((_currentHeatPixel * 150) / HOLOBAR_WIDTH) + 1;
+                
                 updateLabels(heatPercent);
-            }
-            // no edge, set to 0
-            else
-            {
-                _heatLevelLabel.Text = "no heat or not holosmith";
-            }
+            }  
         }
 
 

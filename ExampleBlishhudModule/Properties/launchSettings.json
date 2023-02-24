@@ -3,7 +3,7 @@
     "gw2": {
       "commandName": "Executable",
       "executablePath": "C:\\Users\\Renske\\Desktop\\Blish.HUD.1.0.0\\Blish HUD.exe",
-      "commandLineArgs": "--debug --module \"C:\\Users\\Renske\\Example-Blish-HUD-Module\\ExampleBlishhudModule\\bin\\Debug\\net48\\ExampleBlishhudModule.bhm\""
+      "commandLineArgs": "--debug --module \"D:\\Github\\blishhudholo\\blishhud-holosmith-addon\\ExampleBlishhudModule\\bin\\Debug\\net48\\ExampleBlishhudModule.bhm\""
     },
     "powershell": {
       "commandName": "Executable",
