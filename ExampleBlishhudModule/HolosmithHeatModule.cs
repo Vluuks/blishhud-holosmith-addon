@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Data.SqlTypes;
 using System.Drawing;
 using System.Drawing.Text;
 using System.IO;
@@ -30,6 +31,7 @@ namespace ExampleBlishhudModule
         private static readonly Logger Logger = Logger.GetLogger<HolosmithHeatModule>();
 
         private double _tick = 0;
+        private decimal _currentHeatPixel = 0;
 
         private int HOLOBAR_TOPLEFT_Y_ORIGIN = 999;
         private int HOLOBAR_TOPLEFT_X_ORIGIN = 672;
@@ -60,7 +62,6 @@ namespace ExampleBlishhudModule
         // between updates to both Blish HUD and your module.
         protected override void DefineSettings(SettingCollection settings)
         {
-
             _enumExampleSetting = settings.DefineSetting("UI size",
                 UiSize.Small,
                 () => "UI Size",
@@ -72,7 +73,6 @@ namespace ExampleBlishhudModule
         // and render loop, so be sure to not do anything here that takes too long.
         protected override void Initialize()
         {
-
             _forgeHeatLevelContainer = new MyContainer()
             {
                 BackgroundColor = Color.TransparentBlack,
@@ -127,10 +127,6 @@ namespace ExampleBlishhudModule
                 Location       = new Point(100, 0),
                 Parent         = _forgeDelimiterContainer
             };
-
-            //Logger.Debug("lekkerkleurtje " + GetColorAt(1000, 1228).ToString());
-            //GetColorAt(1000, 1228);
-            //SomePitifulAttempt();
         }
 
         // Some API requests need an api key. e.g. accessing account data like inventory or bank content
@@ -237,44 +233,7 @@ namespace ExampleBlishhudModule
         private MyContainer _forgeHeatLevelContainer;
         private MyContainer _holoBarTestContainer;
         private Label _holoBarTestLabel;
-
         private StandardWindow _exampleWindow;
-
-        public static System.Drawing.Color GetColorAt(int x, int y)
-        {
-            Bitmap bmp = new Bitmap(1, 1);
-            System.Drawing.Rectangle bounds = new System.Drawing.Rectangle(x, y, 1, 1);
-            using (Graphics g = Graphics.FromImage(bmp))
-                g.CopyFromScreen(bounds.Location, new System.Drawing.Point(0, 0), bounds.Size);
-            return bmp.GetPixel(0, 0);
-        }
-
-        [DllImport("user32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool GetWindowRect(IntPtr hWnd, ref RECT lpRect);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        public static extern bool MoveWindow(IntPtr hWnd, int x, int y, int width, int height, bool repaint);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool GetClientRect(IntPtr hWnd, out RECT lpRect);
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct RECT
-        {
-            public RECT(int l, int t, int r, int b)
-            {
-                Left = l;
-                Top = t;
-                Right = r;
-                Bottom = b;
-            }
-            public int Left;
-            public int Top;
-            public int Right;
-            public int Bottom;
-        }
 
         private void SomePitifulAttempt()
         {
@@ -292,37 +251,44 @@ namespace ExampleBlishhudModule
             {
                 System.Drawing.Color c = bitmap.GetPixel(i, 0);
 
-                //Logger.Debug("kleurpixelding? " + c.ToString());
                 bool isHeatEdge = isEdge(bitmap.GetPixel(i, 0), bitmap.GetPixel(i + 1, 0));
                 if (isHeatEdge)
                 {
-                    //Logger.Debug("heat edge detected at " + i.ToString());
-                    decimal heatPercent = ((i * 150) / HOLOBAR_WIDTH) + 1;
-                    //Logger.Debug("percentage estimated heat " + heatPercent.ToString());
+                    _currentHeatPixel = i;
                     foundEdge = true;
-      
-                    if(heatPercent >= 130)
-                    {
-                        _heatLevelLabel.TextColor = Color.Red;
-                    }
-                    else if(heatPercent <= 130 && heatPercent >= 100)
-                    {
-                        _heatLevelLabel.TextColor = Color.Orange;
-                    }
-                    else
-                    {
-                        _heatLevelLabel.TextColor = Color.White;
-                    }
-
-                    _heatLevelLabel.Text = heatPercent.ToString();
+                    break;
                 }
             }
 
+            if(foundEdge)
+            {
+                decimal heatPercent = ((_currentHeatPixel * 150) / HOLOBAR_WIDTH) + 1;
+                updateLabels(heatPercent);
+            }
             // no edge, set to 0
-            if(!foundEdge)
+            else
             {
                 _heatLevelLabel.Text = "no heat or not holosmith";
             }
+        }
+
+
+        private void updateLabels(decimal heatPercent)
+        {
+            if (heatPercent >= 130)
+            {
+                _heatLevelLabel.TextColor = Color.Red;
+            }
+            else if (heatPercent <= 130 && heatPercent >= 100)
+            {
+                _heatLevelLabel.TextColor = Color.Orange;
+            }
+            else
+            {
+                _heatLevelLabel.TextColor = Color.White;
+            }
+
+            _heatLevelLabel.Text = heatPercent.ToString();
         }
 
         private bool isEdge(System.Drawing.Color left, System.Drawing.Color right)
