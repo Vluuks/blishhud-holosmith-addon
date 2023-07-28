@@ -33,7 +33,7 @@ namespace ExampleBlishhudModule
         private double _tick = 0;
         private decimal _currentHeatPixel = 0;
 
-        private int HOLOBAR_TOPLEFT_Y_ORIGIN = 999;
+        private int HOLOBAR_TOPLEFT_Y_ORIGIN = 989;
         private int HOLOBAR_TOPLEFT_X_ORIGIN = 672;
 
         private int HOLOBAR_HEIGHT = 8;
@@ -73,6 +73,9 @@ namespace ExampleBlishhudModule
         // and render loop, so be sure to not do anything here that takes too long.
         protected override void Initialize()
         {
+
+            Logger.Info("Renske test123");
+
             _forgeHeatLevelContainer = new MyContainer()
             {
                 BackgroundColor = Color.Transparent,
@@ -112,7 +115,7 @@ namespace ExampleBlishhudModule
                 BackgroundColor  = Color.Transparent,
                 HeightSizingMode = SizingMode.AutoSize,
                 WidthSizingMode  = SizingMode.AutoSize,
-                Location         = new Point(1000, 1228),
+                Location         = new Point(1000, 1213),
                 Parent           = GameService.Graphics.SpriteScreen
             };
 
@@ -139,6 +142,30 @@ namespace ExampleBlishhudModule
                 Location       = new Point(100, 0),
                 Parent         = _forgeDelimiterContainer
             };
+
+
+            // check if ECSU or PBM/TRV
+            Bitmap bitmap = new Bitmap(HOLOBAR_WIDTH, 1);
+            var g = System.Drawing.Graphics.FromImage(bitmap);
+
+            g.CopyFromScreen(
+                new System.Drawing.Point(HOLOBAR_TOPLEFT_X_ORIGIN, HOLOBAR_TOPLEFT_Y_ORIGIN + (HOLOBAR_HEIGHT - 4)), // we onlyy want the middle pixel for efficiency purposes
+                System.Drawing.Point.Empty, new Size(HOLOBAR_WIDTH, 1)
+            );
+
+            // update the colors
+            int delimiterCount = 0;
+            int pixelPosition;
+
+            for (pixelPosition = 0; pixelPosition < HOLOBAR_WIDTH - 1; pixelPosition++)
+            {
+                System.Drawing.Color c = bitmap.GetPixel(pixelPosition, 0);
+                bool dl = isDelimiter(bitmap.GetPixel(pixelPosition, 0), bitmap.GetPixel(pixelPosition + 1, 0));
+                if (dl) delimiterCount++;
+            }
+
+            Logger.Info("pissebedden" + delimiterCount.ToString());
+
         }
 
         // Some API requests need an api key. e.g. accessing account data like inventory or bank content
@@ -309,6 +336,13 @@ namespace ExampleBlishhudModule
         {
             return ((left.R == 255 && left.G == 255 && left.B == 255) // white
                 && (right.R != 255 && right.G != 255 && right.B != 255) // not white
+                );
+        }
+
+        private bool isDelimiter(System.Drawing.Color left, System.Drawing.Color right)
+        {
+            return ((left.R == 0 && left.G == 0 && left.B == 0) // black
+                && (right.R != 0 && right.G != 0 && right.B != 0) // also black
                 );
         }
 
