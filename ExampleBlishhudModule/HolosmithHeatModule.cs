@@ -31,6 +31,8 @@ namespace ExampleBlishhudModule
         private static readonly Logger Logger = Logger.GetLogger<HolosmithHeatModule>();
 
         private double _tick = 0;
+        private double _tick2 = 0;
+
         private decimal _currentHeatPixel = 0;
 
         private int HOLOBAR_TOPLEFT_Y_ORIGIN = 989;
@@ -38,6 +40,8 @@ namespace ExampleBlishhudModule
 
         private int HOLOBAR_HEIGHT = 8;
         private int HOLOBAR_WIDTH = 236;
+
+        private int maxHeat = 150;
 
         private System.Drawing.Color[] hoiikbendom = new System.Drawing.Color[236]; 
 
@@ -73,8 +77,7 @@ namespace ExampleBlishhudModule
         // and render loop, so be sure to not do anything here that takes too long.
         protected override void Initialize()
         {
-
-            Logger.Info("Renske test123");
+            CheckIfECSU();
 
             _forgeHeatLevelContainer = new MyContainer()
             {
@@ -143,29 +146,6 @@ namespace ExampleBlishhudModule
                 Parent         = _forgeDelimiterContainer
             };
 
-
-            // check if ECSU or PBM/TRV
-            Bitmap bitmap = new Bitmap(HOLOBAR_WIDTH, 1);
-            var g = System.Drawing.Graphics.FromImage(bitmap);
-
-            g.CopyFromScreen(
-                new System.Drawing.Point(HOLOBAR_TOPLEFT_X_ORIGIN, HOLOBAR_TOPLEFT_Y_ORIGIN + (HOLOBAR_HEIGHT - 4)), // we onlyy want the middle pixel for efficiency purposes
-                System.Drawing.Point.Empty, new Size(HOLOBAR_WIDTH, 1)
-            );
-
-            // update the colors
-            int delimiterCount = 0;
-            int pixelPosition;
-
-            for (pixelPosition = 0; pixelPosition < HOLOBAR_WIDTH - 1; pixelPosition++)
-            {
-                System.Drawing.Color c = bitmap.GetPixel(pixelPosition, 0);
-                bool dl = isDelimiter(bitmap.GetPixel(pixelPosition, 0), bitmap.GetPixel(pixelPosition + 1, 0));
-                if (dl) delimiterCount++;
-            }
-
-            Logger.Info("pissebedden" + delimiterCount.ToString());
-
         }
 
         // Some API requests need an api key. e.g. accessing account data like inventory or bank content
@@ -205,10 +185,17 @@ namespace ExampleBlishhudModule
         {
             
             base.Update(gameTime);
-            if(gameTime.TotalGameTime.TotalMilliseconds - _tick > 200)
+            if(gameTime.TotalGameTime.TotalMilliseconds - _tick > 300)
             {
                 _tick = gameTime.TotalGameTime.TotalMilliseconds;
                 SomePitifulAttempt();
+            }
+
+            if(gameTime.TotalGameTime.TotalMilliseconds - _tick2 > 2000)
+            {
+                _tick2 = gameTime.TotalGameTime.TotalMilliseconds;
+                Logger.Info("checksuuu");
+                CheckIfECSU();
             }
         }
 
@@ -276,6 +263,46 @@ namespace ExampleBlishhudModule
         private Label _holoBarTestLabel;
         private StandardWindow _exampleWindow;
 
+        private void CheckIfHolo()
+        {
+
+        }
+
+        private void CheckIfECSU()
+        {
+            // check if ECSU or PBM/TRV by counting delimiters in the heatbar
+            Bitmap bitmap = new Bitmap(HOLOBAR_WIDTH, 1);
+            var g = System.Drawing.Graphics.FromImage(bitmap);
+
+            g.CopyFromScreen(
+                new System.Drawing.Point(HOLOBAR_TOPLEFT_X_ORIGIN + 10, HOLOBAR_TOPLEFT_Y_ORIGIN + (HOLOBAR_HEIGHT - 4)), // we onlyy want the middle pixel for efficiency purposes
+                System.Drawing.Point.Empty, new Size(HOLOBAR_WIDTH - 10, 1)
+            );
+
+            int delimiterCount = 0;
+            for (int pixelPosition = 0; pixelPosition < HOLOBAR_WIDTH - 1; pixelPosition++)
+            {
+                System.Drawing.Color c = bitmap.GetPixel(pixelPosition, 0);
+                bool dl = isDelimiter(bitmap.GetPixel(pixelPosition, 0), bitmap.GetPixel(pixelPosition + 1, 0));
+
+                if (dl)
+                {
+                    Logger.Info("found delimiter @ " + pixelPosition.ToString());
+                    delimiterCount++;
+                }
+            }
+
+            // not using ECSU
+            if (delimiterCount == 1)
+            {
+                maxHeat = 100;
+            }
+            else
+            {
+                maxHeat = 150;
+            }
+        }
+
         private void SomePitifulAttempt()
         {
             Bitmap bitmap = new Bitmap(HOLOBAR_WIDTH, 1);
@@ -303,11 +330,12 @@ namespace ExampleBlishhudModule
             }
 
             // if we detected a true new value, not a stray 0 because of UI, we update the UI
-            if (foundEdge && (Math.Abs(_currentHeatPixel - pixelPosition) < 50))
+            //if (foundEdge && (Math.Abs(_currentHeatPixel - pixelPosition) < 60))
+                if(foundEdge)
             {
-                // _heatLevelLabel2.Text = "debug leven " + pixelPosition.ToString();
+                _heatLevelLabel2.Text = "debug leven " + pixelPosition.ToString() + " max @ " + maxHeat.ToString();
                 _currentHeatPixel = pixelPosition;
-                int heatPercent = (int) ((_currentHeatPixel * 150) / HOLOBAR_WIDTH) + 1;
+                int heatPercent = (int) ((_currentHeatPixel * maxHeat) / HOLOBAR_WIDTH) + 1;
                 
                 updateLabels(heatPercent);
             }  
@@ -341,8 +369,8 @@ namespace ExampleBlishhudModule
 
         private bool isDelimiter(System.Drawing.Color left, System.Drawing.Color right)
         {
-            return ((left.R == 0 && left.G == 0 && left.B == 0) // black
-                && (right.R != 0 && right.G != 0 && right.B != 0) // also black
+            return ((left.A == 255 && left.R == 0 && left.G == 0 && left.B == 0) // black
+                && (right.A == 255 && right.R == 0 && right.G == 0 && right.B == 0) // also black
                 );
         }
 
