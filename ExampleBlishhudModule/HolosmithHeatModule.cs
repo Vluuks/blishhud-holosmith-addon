@@ -333,10 +333,9 @@ namespace ExampleBlishhudModule
             //if (foundEdge && (Math.Abs(_currentHeatPixel - pixelPosition) < 60))
                 if(foundEdge)
             {
-                _heatLevelLabel2.Text = "debug leven " + pixelPosition.ToString() + " max @ " + maxHeat.ToString();
                 _currentHeatPixel = pixelPosition;
-                int heatPercent = (int) ((_currentHeatPixel * maxHeat) / HOLOBAR_WIDTH) + 1;
-                
+                int heatPercent = (int)((_currentHeatPixel * maxHeat) / HOLOBAR_WIDTH) + 1;
+                _heatLevelLabel2.Text = "debug leven heat @ " + heatPercent.ToString() + " pixels @ " + pixelPosition.ToString() + " maxHeat @ " + maxHeat.ToString();
                 updateLabels(heatPercent);
             }  
         }
